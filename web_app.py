@@ -111,6 +111,23 @@ def safe_project_path(relative_path: str) -> Path:
     return path
 
 
+def safe_output_path(relative_path: str) -> Path:
+    path = (OUTPUTS_DIR / relative_path).resolve()
+    if OUTPUTS_DIR not in path.parents and path != OUTPUTS_DIR:
+        raise ValueError("Invalid output path.")
+    return path
+
+
+def output_relative_url_dir(output_dir: str) -> str:
+    normalized = output_dir.replace("\\", "/")
+    prefix = "web_outputs/"
+    if normalized == "web_outputs":
+        return ""
+    if normalized.startswith(prefix):
+        return normalized[len(prefix):]
+    return normalized
+
+
 def get_video_meta(path: Path) -> dict[str, Any]:
     cap = cv2.VideoCapture(str(path))
     if not cap.isOpened():
@@ -274,6 +291,8 @@ def start() -> Response:
     upload = request.files.get("upload")
     if upload and upload.filename:
         safe_name = secure_filename(upload.filename)
+        if Path(safe_name).suffix.lower() not in ALLOWED_VIDEO_EXTS:
+            return jsonify({"error": "Unsupported video file type."}), 400
         input_path = INPUTS_DIR / safe_name
         upload.save(input_path)
     else:
@@ -316,7 +335,7 @@ def output_files_for(output_dir: str) -> list[dict[str, str]]:
         ("summary.json", "Summary"),
     ]
     result = []
-    output_url_dir = output_dir.replace("\\", "/")
+    output_url_dir = output_relative_url_dir(output_dir)
     for name, label in files:
         path = ROOT / output_dir / name
         if path.exists() and path.stat().st_size > 0:
@@ -328,7 +347,7 @@ def output_files_for(output_dir: str) -> list[dict[str, str]]:
 def status() -> Response:
     with job_lock:
         data = json.loads(json.dumps(job.__dict__))
-    output_url_dir = data["output_dir"].replace("\\", "/") if data.get("output_dir") else ""
+    output_url_dir = output_relative_url_dir(data["output_dir"]) if data.get("output_dir") else ""
     data["output_url"] = f"/outputs/{output_url_dir}" if output_url_dir else ""
     data["output_files"] = output_files_for(data["output_dir"]) if data.get("output_dir") else []
     data["preview_frames"] = []
@@ -344,7 +363,13 @@ def status() -> Response:
 
 @app.get("/outputs/<path:filename>")
 def outputs(filename: str) -> Response:
-    return send_from_directory(ROOT, filename)
+    try:
+        path = safe_output_path(filename)
+    except ValueError:
+        return jsonify({"error": "Invalid output path."}), 400
+    if not path.exists() or not path.is_file():
+        return jsonify({"error": "Output file does not exist."}), 404
+    return send_from_directory(OUTPUTS_DIR, filename)
 
 
 if __name__ == "__main__":

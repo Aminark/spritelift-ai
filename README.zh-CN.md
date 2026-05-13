@@ -24,6 +24,7 @@ SpriteLift AI 使用 Python、OpenCV 和 `rembg`：从视频中抽帧，用 AI �
 - 实时日志和实际运行命令
 - 透明棋盘背景帧预览
 - Sprite sheet 大图预览和下载入口
+- 前端已拆分为 HTML/CSS/JS，并支持中文/英文切换
 
 ## 快速开始
 
@@ -77,6 +78,17 @@ python -m venv .venv
 - `frames.zip`：透明 PNG 单帧打包
 - `manifest.json`：每帧来源、裁剪框、sprite sheet 坐标
 - `summary.json`：输出摘要，方便其他工具读取
+
+## 项目结构
+
+```text
+process_video_sprites.py   OpenCV/rembg 核心处理流程
+web_app.py                 Flask 后端与任务运行器
+templates/index.html       WebUI 模板
+static/app.css             WebUI 样式
+static/app.js              WebUI 交互和中英文切换
+start_web.bat              Windows 一键启动脚本
+```
 
 ## 参数建议
 

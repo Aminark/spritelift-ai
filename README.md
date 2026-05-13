@@ -24,6 +24,7 @@ SpriteLift AI extracts frames from a video, removes the background with `rembg`,
 - Live logs and generated command view
 - Transparent checkerboard preview for frames
 - Sprite sheet preview and direct download links
+- Extracted HTML/CSS/JS frontend with Chinese/English switching
 
 ## Quick Start
 
@@ -77,6 +78,17 @@ The first `rembg` run may download a model file. Later runs reuse the cached mod
 - `frames.zip`: ZIP bundle of transparent PNG frames
 - `manifest.json`: frame source info, crop boxes, and sprite sheet rectangles
 - `summary.json`: compact output summary for tools
+
+## Project Layout
+
+```text
+process_video_sprites.py   Core OpenCV/rembg processing pipeline
+web_app.py                 Flask backend and job runner
+templates/index.html       WebUI template
+static/app.css             WebUI styles
+static/app.js              WebUI behavior and i18n
+start_web.bat              Windows one-click launcher
+```
 
 ## Tips
 

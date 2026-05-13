@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="{{ lang }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SpriteLift AI Studio</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
+  <script>
+    window.APP_LANG = "{{ lang }}";
+  </script>
+  <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>SpriteLift AI Studio</h1>
+      <p class="sub" data-i18n="subtitle"></p>
+    </div>
+    <div class="top-status">
+      <button class="language-toggle" id="languageToggle" type="button"></button>
+      <span id="summary" data-i18n="idle"></span>
+      <span id="badge" class="badge">Ready</span>
+    </div>
+  </header>
+
+  <main>
+    <form id="jobForm" class="tool-form">
+      <section>
+        <h2 data-i18n="inputRange"></h2>
+        <div class="grid">
+          <label class="wide"><span data-i18n="existingVideo"></span>
+            <select name="video" id="videoSelect">
+              {% for video in videos %}
+              <option value="{{ video }}">{{ video }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label class="wide"><span data-i18n="uploadVideo"></span>
+            <input name="upload" id="uploadInput" type="file" accept="video/*">
+          </label>
+          <label><span data-i18n="startSecond"></span>
+            <input name="start_sec" type="number" min="0" step="0.1" value="0">
+          </label>
+          <label><span data-i18n="endSecond"></span>
+            <input name="end_sec" type="number" min="0" step="0.1" data-i18n-placeholder="endPlaceholder">
+          </label>
+          <label><span data-i18n="maxFrames"></span>
+            <input name="max_frames" type="number" min="1" value="30">
+          </label>
+          <label><span data-i18n="everyN"></span>
+            <input name="every_n" type="number" min="1" value="3">
+          </label>
+        </div>
+        <div class="metrics" id="videoMeta">
+          <div class="metric"><span data-i18n="duration"></span><strong>-</strong></div>
+          <div class="metric"><span>FPS</span><strong>-</strong></div>
+          <div class="metric"><span data-i18n="resolution"></span><strong>-</strong></div>
+          <div class="metric"><span data-i18n="estimatedFrames"></span><strong id="estimate">-</strong></div>
+        </div>
+        <p class="hint" data-i18n="rangeHint"></p>
+      </section>
+
+      <section>
+        <h2 data-i18n="aiExport"></h2>
+        <div class="grid">
+          <label><span data-i18n="qualityPreset"></span>
+            <select id="preset">
+              <option value="balanced">Balanced 512</option>
+              <option value="sharp">Sharp 768</option>
+              <option value="quick">Quick 256</option>
+            </select>
+          </label>
+          <label><span data-i18n="aiModel"></span>
+            <select name="model">
+              <option value="u2net">u2net</option>
+              <option value="isnet-general-use">isnet-general-use</option>
+              <option value="u2netp">u2netp</option>
+            </select>
+          </label>
+          <label><span data-i18n="canvasWidth"></span>
+            <input name="width" type="number" min="1" value="512">
+          </label>
+          <label><span data-i18n="canvasHeight"></span>
+            <input name="height" type="number" min="1" value="512">
+          </label>
+          <label><span data-i18n="sheetColumns"></span>
+            <input name="columns" type="number" min="1" value="6">
+          </label>
+          <label><span data-i18n="sheetSpacing"></span>
+            <input name="spacing" type="number" min="0" value="0">
+          </label>
+          <label><span data-i18n="webpDuration"></span>
+            <input name="webp_duration" type="number" min="1" value="80">
+          </label>
+          <label><span data-i18n="sceneThreshold"></span>
+            <input name="scene_threshold" type="number" min="0" step="0.1" data-i18n-placeholder="disabledPlaceholder">
+          </label>
+          <label><span data-i18n="alphaThreshold"></span>
+            <input name="alpha_threshold" type="number" min="0" max="255" value="12">
+          </label>
+          <label><span data-i18n="feather"></span>
+            <input name="feather" type="number" min="0" step="0.1" value="0.3">
+          </label>
+          <label><span data-i18n="morph"></span>
+            <input name="morph" type="number" min="0" value="1">
+          </label>
+          <label><span data-i18n="padding"></span>
+            <input name="padding" type="number" min="0" value="12">
+          </label>
+        </div>
+        <div class="check-grid">
+          <label class="check"><input name="crop" type="checkbox" checked> <span data-i18n="autoCrop"></span></label>
+          <label class="check"><input name="export_sheet" type="checkbox" checked> <span data-i18n="exportSheet"></span></label>
+          <label class="check"><input name="export_webp" type="checkbox" checked> <span data-i18n="exportWebp"></span></label>
+          <label class="check"><input name="export_zip" type="checkbox" checked> <span data-i18n="exportZip"></span></label>
+        </div>
+        <div class="actions">
+          <button id="startBtn" type="submit" data-i18n="start"></button>
+          <button class="secondary" type="button" onclick="location.reload()" data-i18n="refresh"></button>
+        </div>
+        <p class="hint" data-i18n="qualityHint"></p>
+      </section>
+    </form>
+
+    <section class="results">
+      <div class="result-head">
+        <h2 data-i18n="resultsLogs"></h2>
+        <div class="tabs">
+          <button class="tab active" data-tab="gallery" type="button" data-i18n="preview"></button>
+          <button class="tab" data-tab="logs" type="button" data-i18n="logs"></button>
+          <button class="tab" data-tab="command" type="button" data-i18n="command"></button>
+        </div>
+      </div>
+      <div id="galleryPanel" class="panel active">
+        <div class="outputs" id="outputs"></div>
+        <img id="sheetPreview" class="sheet-preview checker" alt="Sprite sheet preview">
+        <div class="preview-grid" id="previews"></div>
+        <div class="empty" id="emptyPreview" data-i18n="emptyPreview"></div>
+      </div>
+      <div id="logsPanel" class="panel">
+        <pre id="logs"></pre>
+      </div>
+      <div id="commandPanel" class="panel">
+        <div class="command" id="commandText" data-i18n="noCommand"></div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

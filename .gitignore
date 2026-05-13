@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+.web_app.lock
+inputs/
+web_outputs/
+out*/
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.webm
